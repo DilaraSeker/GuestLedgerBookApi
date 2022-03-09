@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -55,7 +56,6 @@ func getAllGuestsFromDB() []primitive.M {
 	cur.Close(context.Background())
 	return results
 }
-
 func GetAllGuests(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -75,7 +75,6 @@ func insertOneGuest(guest models.Guest) {
 	}
 	fmt.Println("Send a message", insertResult.InsertedID)
 }
-
 func CreateGuest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -86,4 +85,26 @@ func CreateGuest(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println(message, r.Body)
 	insertOneGuest(guest)
 	json.NewEncoder(w).Encode(guest)
+}
+
+// Delete message from database
+func deleteOneGuest(guest string) {
+	fmt.Println(guest)
+	id, _ := primitive.ObjectIDFromHex(guest)
+	filter := bson.M{"_id": id}
+	d, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Deleted Document", d.DeletedCount)
+}
+func DeleteGuest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	params := mux.Vars(r)
+	deleteOneGuest(params["id"])
+	json.NewEncoder(w).Encode(params["id"])
 }
