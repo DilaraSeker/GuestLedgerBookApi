@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"GuestLedgerBookApi/models"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -63,4 +64,26 @@ func GetAllGuests(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+}
+
+// Insert message to Database
+func insertOneGuest(guest models.Guest) {
+	insertResult, err := collection.InsertOne(context.Background(), guest)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Send a message", insertResult.InsertedID)
+}
+
+func CreateGuest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	var guest models.Guest
+	_ = json.NewDecoder(r.Body).Decode(&guest)
+	// fmt.Println(message, r.Body)
+	insertOneGuest(guest)
+	json.NewEncoder(w).Encode(guest)
 }
